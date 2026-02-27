@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Generated plots (keep the example ones in plots/ but not temp files)
+plots/test_*.png
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
