@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # ── Hyper-parameters ────────────────────────────────────────────────────────
-N_EPISODES   = 3_000
+N_EPISODES   = 1_000
 ALPHA        = 0.1
 GAMMA        = 0.99
 EPS_START    = 1.0
@@ -116,7 +116,7 @@ def render_greedy(Q):
     env.close()
     print(f"  Greedy episode reward: {total:.3f}")
 
-
+#%%
 # ── Entry-point ──────────────────────────────────────────────────────────────
 parser = argparse.ArgumentParser(description="Q-Learning on MiniGrid-Empty-5x5-v0")
 parser.add_argument("--render", action="store_true",
@@ -138,3 +138,44 @@ plot_rewards(rewards, PLOT_FILE)
 if args.render:
     print("\n  Rendering greedy policy …")
     render_greedy(Q)
+
+#%%
+if True:  # debug – run 10 full greedy episodes, print every step
+    ACTION_NAMES = {0: "turn-left", 1: "turn-right", 2: "forward"}
+    N_DEBUG_EPS  = 10
+    N_EPISODES   = 10
+
+
+    env = gym.make(ENV_ID, render_mode="human")
+    rewards, Q = train()
+
+    for ep in range(1, N_DEBUG_EPS + 1):
+        env.reset()
+        state      = get_state(env)
+        done       = False
+        step_num   = 0
+        ep_reward  = 0.0
+
+        print(f"\n{'='*52}")
+        print(f"  Episode {ep}/{N_DEBUG_EPS}")
+        print(f"{'='*52}")
+        print(f"  Initial state : {state}")
+
+        while not done:
+            action = int(np.argmax(Q[state]))
+            _, reward, terminated, truncated, _ = env.step(action)
+            done       = terminated or truncated
+            next_state = get_state(env)
+            ep_reward += reward
+            step_num  += 1
+
+            print(f"  Step {step_num:3d} | state={state}  action={ACTION_NAMES[action]:11s}"
+                  f"  reward={reward:+.3f}  next={next_state}  {'DONE' if done else ''}")
+
+            state = next_state
+
+        print(f"  ── Episode {ep} finished in {step_num} steps | total reward = {ep_reward:+.3f}")
+
+    env.close()
+
+# %%
