@@ -2,19 +2,29 @@
 TRPO (Trust Region Policy Optimization) on MiniGrid-DoorKey-6x6-v0
 Standalone script — no shared dependencies.
 
+───────────────────────────── CORE INTUITION ─────────────────────────────
+TRPO = "take the biggest possible policy-improvement step WITHOUT breaking
+the policy" (Schulman et al., 2015).  Vanilla policy gradient (REINFORCE/A2C)
+uses a fixed learning rate — too large and the policy collapses; too small and
+learning crawls.  TRPO frames the update as a constrained optimisation problem:
+maximise the expected advantage subject to KL(π_old || π_new) ≤ δ.  It solves
+this approximately via the NATURAL GRADIENT (F⁻¹g, where F is the Fisher
+Information Matrix), computed cheaply with the Conjugate Gradient algorithm
+(no explicit Fisher matrix stored).  A backtracking line search ensures the KL
+constraint is actually satisfied after the step.  The result: guaranteed
+monotonic improvement (in theory) and much more stable training than A2C.
+PPO is the practical successor — it replaces the KL constraint with a simple
+clipped ratio, achieving similar stability with 1/10th the code.
+Family: neural, model-free, on-policy, actor-critic, natural-gradient trust
+region.
+
+Relation to other algorithms:
+  A2C → (add KL trust region + natural gradient + line search) → TRPO
+  TRPO → (replace KL constraint with clipped ratio) → PPO
+──────────────────────────────────────────────────────────────────────────
+
 Observation : flattened partial-view image (7×7×3 = 147) + direction → 148 dims.
 Actions     : 0-6 (full MiniGrid action set, discrete).
-
-Algorithm:
-  1. Collect a full rollout of ROLLOUT_STEPS steps.
-  2. Compute GAE advantages + normalise.
-  3. Compute the policy gradient g.
-  4. Compute the natural gradient direction s = F⁻¹g via Conjugate Gradient,
-     where F is the Fisher Information Matrix approximated via Hessian-vector
-     products of the KL divergence.
-  5. Find the maximum step size δ satisfying the KL trust-region constraint.
-  6. Apply a backtracking line search on the policy parameters.
-  7. Update the value network with multiple gradient steps (separate from policy).
 
 References:
   Schulman et al. (2015) "Trust Region Policy Optimization"

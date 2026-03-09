@@ -1,15 +1,27 @@
 """
-DQN on MiniGrid-DoorKey-6x6-v0
+DQN (Deep Q-Network) on MiniGrid-DoorKey-6x6-v0
 Standalone script — no shared dependencies.
+
+───────────────────────────── CORE INTUITION ─────────────────────────────
+DQN = Q-Learning with a neural network instead of a table (Mnih et al., 2015).
+Tabular Q-learning stores one number per (state, action) pair — impossible when
+states are images or high-dimensional vectors.  DQN approximates Q(s,a) with a
+neural net and adds two tricks to make it stable:
+  1. REPLAY BUFFER — store transitions and sample random mini-batches,
+     breaking correlation between consecutive samples (off-policy).
+  2. TARGET NETWORK — a frozen copy of the Q-net used to compute TD targets,
+     updated periodically, preventing the "chasing a moving target" problem.
+This script also uses the Double DQN trick (Hasselt 2016): the online net
+picks the best action, but the target net evaluates it, reducing Q-value
+overestimation.
+Family: neural, model-free, off-policy, value-based, TD.
+
+Relation to other algorithms:
+  Q-Learning → (add neural net + replay + target net) → DQN
+──────────────────────────────────────────────────────────────────────────
 
 Observation: flattened partial-view image (7×7×3 = 147) + direction → 148 dims.
 Actions    : 0-6 (full MiniGrid action set).
-
-Implements:
-  - Experience replay buffer
-  - Target network (hard update every TARGET_UPDATE_FREQ steps)
-  - Epsilon-greedy exploration
-  - Double Q target (action from online net, value from target net)
 """
 
 import argparse
@@ -136,6 +148,7 @@ def train():
                 with torch.no_grad():
                     # Double DQN: online selects action, target evaluates it
                     best_actions = online_net(s2).argmax(dim=1, keepdim=True)
+                    # IPython.embed(header="Double DQN target computation debug breakpoint")
                     q_next       = target_net(s2).gather(1, best_actions).squeeze(1)
                     q_target     = r + GAMMA * q_next * (1.0 - d)
 

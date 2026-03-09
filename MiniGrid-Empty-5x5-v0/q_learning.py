@@ -2,11 +2,21 @@
 Q-Learning on MiniGrid-Empty-5x5-v0
 Standalone script — no shared dependencies.
 
+───────────────────────────── CORE INTUITION ─────────────────────────────
+Q-Learning = the OFF-POLICY sibling of SARSA.  Both maintain a Q-table, but
+Q-learning always updates toward the *best possible* next action (max_a Q),
+regardless of what the agent actually did.  This decouples the exploration
+policy (ε-greedy) from the learned value (greedy), which is the definition
+of off-policy learning.  Converges to the optimal Q* even with random
+exploration, given enough visits.  Family: tabular, model-free, off-policy,
+TD(0).  DQN is Q-learning with a neural net replacing the table.
+
+Update rule:  Q(s,a) ← Q(s,a) + α [r + γ max_a' Q(s',a') − Q(s,a)]
+              (contrast SARSA: uses Q(s',a') where a' is actually taken)
+──────────────────────────────────────────────────────────────────────────
+
 State  : (agent_x, agent_y, agent_dir)  — tabular
 Actions: 0=turn-left, 1=turn-right, 2=forward  (only these matter in Empty)
-
-Key difference from SARSA: the update target uses max_a Q(s', a)
-instead of the actually-selected next action (off-policy).
 """
 #%%
 import argparse

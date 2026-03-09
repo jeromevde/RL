@@ -2,6 +2,21 @@
 REINFORCE (Monte-Carlo Policy Gradient) on MiniGrid-DoorKey-6x6-v0
 Standalone script — no shared dependencies.
 
+───────────────────────────── CORE INTUITION ─────────────────────────────
+REINFORCE = the simplest POLICY GRADIENT method (Williams, 1992).  Instead of
+learning a value table/function and deriving a policy from it, REINFORCE
+*directly* parameterises the policy π_θ(a|s) as a neural net and optimises it
+by gradient ascent on expected return.  It waits until the end of a full
+episode (Monte Carlo), computes the discounted return G_t for each step, and
+pushes up the log-probability of actions proportional to how good their G_t
+was.  Simple but high-variance — every estimate depends on one full trajectory.
+No value function, no bootstrapping, no replay buffer.
+Family: neural, model-free, on-policy, Monte-Carlo policy gradient.
+
+Gradient:  ∇θ J ≈ Σ_t ∇θ log π_θ(a_t|s_t) · G_t
+           ("make good actions more likely, bad actions less likely")
+──────────────────────────────────────────────────────────────────────────
+
 Observation: flattened agent partial-view image (7×7×3 = 147 values), normalised.
              Direction (0-3) is appended → state_dim = 148.
 Actions    : 0-6 (full MiniGrid action set).

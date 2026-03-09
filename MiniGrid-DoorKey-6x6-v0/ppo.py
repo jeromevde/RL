@@ -2,14 +2,27 @@
 PPO (Proximal Policy Optimization) on MiniGrid-DoorKey-6x6-v0
 Standalone script — no shared dependencies.
 
+───────────────────────────── CORE INTUITION ─────────────────────────────
+PPO = A2C that squeezes more learning out of each batch (Schulman et al., 2017).
+A2C does ONE gradient step per rollout then throws the data away.  PPO reuses
+the same rollout for MULTIPLE epochs of mini-batch updates — but limits how far
+the new policy can drift from the old one via a clipped surrogate objective:
+  L = min(ratio * A,  clip(ratio, 1-ε, 1+ε) * A)
+where ratio = π_new(a|s) / π_old(a|s).  If the policy changes too much
+(ratio strays outside [1-ε, 1+ε]), the gradient is zeroed out — a simple,
+effective trust region.  Also uses GAE (Generalized Advantage Estimation) for
+smoothed, low-variance advantage estimates.  Much more sample-efficient than
+A2C, nearly as simple to implement, and the de-facto default on-policy method.
+Family: neural, model-free, on-policy, actor-critic, clipped trust-region.
+
+Relation to other algorithms:
+  A2C → (add clipped ratio + multi-epoch replay + GAE) → PPO
+  TRPO → (replace KL constraint with clipped ratio) → PPO  (simpler approach
+          to the same problem: "how to take big policy steps safely")
+──────────────────────────────────────────────────────────────────────────
+
 Observation: flattened partial-view image (7×7×3 = 147) + direction → 148 dims.
 Actions    : 0-6 (full MiniGrid action set).
-
-Algorithm:
-  1. Collect a rollout of ROLLOUT_STEPS steps.
-  2. Compute GAE advantages + normalise.
-  3. Update for PPO_EPOCHS epochs with mini-batches.
-  4. Clipped surrogate objective + entropy bonus + value loss.
 """
 
 import argparse

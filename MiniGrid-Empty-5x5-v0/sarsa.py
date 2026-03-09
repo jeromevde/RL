@@ -2,6 +2,18 @@
 SARSA on MiniGrid-Empty-5x5-v0
 Standalone script — no shared dependencies.
 
+───────────────────────────── CORE INTUITION ─────────────────────────────
+SARSA = State-Action-Reward-State-Action.  The simplest ON-POLICY TD method.
+It keeps a table Q(s, a) and updates it toward the reward + the Q-value of the
+action *actually taken* next (not the best one — that's Q-learning).  Because
+the update follows the same policy being used to explore, SARSA learns a policy
+that accounts for its own exploration noise: it is "cautious" near bad
+states it might stumble into.  Family: tabular, model-free, on-policy, TD(0).
+
+Update rule:  Q(s,a) ← Q(s,a) + α [r + γ Q(s',a') − Q(s,a)]
+              where a' is the action the ε-greedy policy actually picks.
+──────────────────────────────────────────────────────────────────────────
+
 State  : (agent_x, agent_y, agent_dir)  — tabular
 Actions: 0=turn-left, 1=turn-right, 2=forward  (only these matter in Empty)
 """

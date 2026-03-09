@@ -2,13 +2,26 @@
 A2C (Synchronous Advantage Actor-Critic) on MiniGrid-DoorKey-6x6-v0
 Standalone script — no shared dependencies.
 
+───────────────────────────── CORE INTUITION ─────────────────────────────
+A2C = REINFORCE + a learned baseline (the critic) + bootstrapping.
+REINFORCE has high variance because it uses the raw return G_t to weight the
+policy gradient.  A2C fixes this by subtracting a "baseline" V(s) — the
+critic's prediction of how good the state is.  The gradient now uses the
+ADVANTAGE  A = R - V(s)  ("how much better than expected?") instead of the raw
+return G, dramatically reducing variance.  It also bootstraps (uses V(s') to
+estimate future returns after N steps instead of waiting for the episode to
+end), which adds bias but further lowers variance and enables learning
+mid-episode.  The actor (policy) and critic (value) share a network trunk.
+Family: neural, model-free, on-policy, actor-critic, TD(n-step).
+
+Relation to other algorithms:
+  REINFORCE → (add value baseline = critic) → Actor-Critic
+  Actor-Critic → (synchronous, advantage-based) → A2C
+  A2C → (add clipped surrogate + minibatch epochs) → PPO
+──────────────────────────────────────────────────────────────────────────
+
 Observation: flattened partial-view image (7×7×3 = 147) + direction → 148 dims.
 Actions    : 0-6 (full MiniGrid action set).
-
-Algorithm:
-  - Collect a fixed-length rollout (N_STEPS) from a single environment.
-  - Compute n-step returns with bootstrapped value baseline.
-  - Update shared actor-critic network with actor + critic + entropy loss.
 """
 #%%
 import os

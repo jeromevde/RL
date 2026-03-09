@@ -2,17 +2,32 @@
 SAC (Soft Actor-Critic) — Discrete action variant — on MiniGrid-DoorKey-6x6-v0
 Standalone script — no shared dependencies.
 
+───────────────────────────── CORE INTUITION ─────────────────────────────
+SAC = DQN's off-policy sample efficiency + an actor network + maximum entropy
+(Haarnoja et al., 2018).  Instead of just maximising reward, SAC maximises
+reward PLUS the entropy of the policy:  J = Σ E[r + α H(π)].  The entropy
+bonus pushes the agent to stay as random as possible while still getting high
+reward — this encourages exploration and produces robust policies that don't
+collapse to a single action.  Temperature α is auto-tuned: if the policy
+becomes too deterministic, α increases; if too random, α decreases.
+Uses twin Q-critics (take the min → avoids overestimation, as in TD3), a
+replay buffer (off-policy), and soft target network updates (polyak averaging).
+Discrete variant: actor outputs softmax probabilities over actions, entropy is
+computed analytically — no reparameterisation trick needed.
+Family: neural, model-free, off-policy, actor-critic, maximum entropy.
+
+Relation to other algorithms:
+  DQN → (add actor + entropy objective + twin critics + soft targets) → SAC
+  It borrows off-policy replay from DQN, actor-critic structure from A2C,
+  and clipped double-Q from TD3.
+──────────────────────────────────────────────────────────────────────────
+
 Observation : flattened partial-view image (7×7×3 = 147) + direction → 148 dims.
 Actions     : 0-6 (full MiniGrid action set, discrete).
 
-Discrete SAC differences vs. continuous SAC:
-  - Actor outputs a softmax distribution over all actions (no reparameterisation trick).
-  - Twin critics each output Q(s, a) for ALL actions simultaneously (N_ACTIONS outputs).
-  - Entropy is computed analytically from π(a|s) — no sampling needed for the entropy term.
-  - Temperature α can be auto-tuned toward a target entropy H* = -log(1/N_ACTIONS).
-
 References:
-  Christodoulou (2019) "Soft Actor-Critic for Discrete Action Settings"
+  Haarnoja et al. (2018) "Soft Actor-Critic: Off-Policy Maximum Entropy Deep RL"
+  Christodoulou (2019)   "Soft Actor-Critic for Discrete Action Settings"
 """
 
 import os
